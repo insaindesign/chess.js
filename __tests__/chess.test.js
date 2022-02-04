@@ -105,13 +105,70 @@ describe("Threats", () => {
         ]
       }
     },
+    {
+      fen: 'rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1',
+      threats: {
+        d5: [
+          {
+            color: 'w',
+            from: 'e4',
+            to: 'd5',
+            flags: 'c',
+            piece: 'p',
+            captured: 'p',
+            san: 'exd5'
+          }
+        ],
+        e4: [
+          {
+            color: 'b',
+            from: 'd5',
+            to: 'e4',
+            flags: 'c',
+            piece: 'p',
+            captured: 'p',
+            san: 'dxe4'
+          }
+        ]
+      }
+    },
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      moves: ['e4', 'd5'],
+      threats: {
+        d5: [
+          {
+            color: 'w',
+            from: 'e4',
+            to: 'd5',
+            flags: 'c',
+            piece: 'p',
+            captured: 'p',
+            san: 'exd5'
+          }
+        ],
+        e4: [
+          {
+            color: 'b',
+            from: 'd5',
+            to: 'e4',
+            flags: 'c',
+            piece: 'p',
+            captured: 'p',
+            san: 'dxe4'
+          }
+        ]
+      }
+    },
   ];
 
   positions.forEach((position) => {
     const chess = new Chess(position.fen);
-    test(position.fen + ' ' + position.square, () => {
-      const moves = chess.threats();
-      expect(moves).toEqual(position.threats);
+    const moves = position.moves || [];
+    test(position.fen + ' moves ' + moves.join(' '), () => {
+      moves.forEach(move => chess.move(move));
+      const threats = chess.threats();
+      expect(threats).toEqual(position.threats);
     });
   });
 });

@@ -615,7 +615,7 @@ var Chess = function (fen) {
 
           if (board[square] != null && board[square].color === them) {
             add_move(board, moves, i, square, BITS.CAPTURE, us)
-          } else if (square === ep_square) {
+          } else if (square === ep_square && turn === us) {
             add_move(board, moves, i, ep_square, BITS.EP_CAPTURE, us)
           }
         }
