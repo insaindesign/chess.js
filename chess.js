@@ -515,9 +515,9 @@ var Chess = function (fen) {
     return piece
   }
 
-  function build_move(board, from, to, flags, promotion) {
+  function build_move(board, from, to, flags, color, promotion) {
     var move = {
-      color: turn,
+      color,
       from: from,
       to: to,
       flags: flags,
@@ -537,8 +537,8 @@ var Chess = function (fen) {
     return move
   }
 
-  function generate_moves(options) {
-    function add_move(board, moves, from, to, flags) {
+  function generate_moves(opts) {
+    function add_move(board, moves, from, to, flags, color) {
       /* if pawn promotion */
       if (
         board[from].type === PAWN &&
@@ -546,15 +546,17 @@ var Chess = function (fen) {
       ) {
         var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
         for (var i = 0, len = pieces.length; i < len; i++) {
-          moves.push(build_move(board, from, to, flags, pieces[i]))
+          moves.push(build_move(board, from, to, flags, color, pieces[i]))
         }
       } else {
-        moves.push(build_move(board, from, to, flags))
+        moves.push(build_move(board, from, to, flags, color))
       }
     }
 
+    var options = opts || {}
+
     var moves = []
-    var us = turn
+    var us = options.turn || turn
     var them = swap_color(us)
     var second_rank = { b: RANK_7, w: RANK_2 }
 
@@ -563,20 +565,15 @@ var Chess = function (fen) {
     var single_square = false
 
     /* do we want legal moves? */
-    var legal =
-      typeof options !== 'undefined' && 'legal' in options
-        ? options.legal
-        : true
+    var legal = 'legal' in options ? options.legal : true
 
     var piece_type =
-      typeof options !== 'undefined' &&
-      'piece' in options &&
-      typeof options.piece === 'string'
+      'piece' in options && typeof options.piece === 'string'
         ? options.piece.toLowerCase()
         : true
 
     /* are we generating moves for a single square? */
-    if (typeof options !== 'undefined' && 'square' in options) {
+    if ('square' in options) {
       if (options.square in SQUARES) {
         first_sq = last_sq = SQUARES[options.square]
         single_square = true
@@ -602,12 +599,12 @@ var Chess = function (fen) {
         /* single square, non-capturing */
         var square = i + PAWN_OFFSETS[us][0]
         if (board[square] == null) {
-          add_move(board, moves, i, square, BITS.NORMAL)
+          add_move(board, moves, i, square, BITS.NORMAL, us)
 
           /* double square */
           var square = i + PAWN_OFFSETS[us][1]
           if (second_rank[us] === rank(i) && board[square] == null) {
-            add_move(board, moves, i, square, BITS.BIG_PAWN)
+            add_move(board, moves, i, square, BITS.BIG_PAWN, us)
           }
         }
 
@@ -617,9 +614,9 @@ var Chess = function (fen) {
           if (square & 0x88) continue
 
           if (board[square] != null && board[square].color === them) {
-            add_move(board, moves, i, square, BITS.CAPTURE)
+            add_move(board, moves, i, square, BITS.CAPTURE, us)
           } else if (square === ep_square) {
-            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
+            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE, us)
           }
         }
       } else if (piece_type === true || piece_type === piece.type) {
@@ -632,10 +629,10 @@ var Chess = function (fen) {
             if (square & 0x88) break
 
             if (board[square] == null) {
-              add_move(board, moves, i, square, BITS.NORMAL)
+              add_move(board, moves, i, square, BITS.NORMAL, us)
             } else {
               if (board[square].color === us) break
-              add_move(board, moves, i, square, BITS.CAPTURE)
+              add_move(board, moves, i, square, BITS.CAPTURE, us)
               break
             }
 
@@ -663,7 +660,14 @@ var Chess = function (fen) {
             !attacked(them, castling_from + 1) &&
             !attacked(them, castling_to)
           ) {
-            add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
+            add_move(
+              board,
+              moves,
+              kings[us],
+              castling_to,
+              BITS.KSIDE_CASTLE,
+              us
+            )
           }
         }
 
@@ -680,7 +684,14 @@ var Chess = function (fen) {
             !attacked(them, castling_from - 1) &&
             !attacked(them, castling_to)
           ) {
-            add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
+            add_move(
+              board,
+              moves,
+              kings[us],
+              castling_to,
+              BITS.QSIDE_CASTLE,
+              us
+            )
           }
         }
       }
@@ -1158,6 +1169,34 @@ var Chess = function (fen) {
     return s
   }
 
+  function valid_moves(options) {
+    /* The internal representation of a chess move is in 0x88 format, and
+     * not meant to be human-readable.  The code below converts the 0x88
+     * square coordinates to algebraic coordinates.  It also prunes an
+     * unnecessary move keys resulting from a verbose call.
+     */
+
+    var ugly_moves = generate_moves(options)
+    var moves = []
+
+    for (var i = 0, len = ugly_moves.length; i < len; i++) {
+      /* does the user want a full move object (most likely not), or just
+       * SAN
+       */
+      if (
+        typeof options !== 'undefined' &&
+        'verbose' in options &&
+        options.verbose
+      ) {
+        moves.push(make_pretty(ugly_moves[i]))
+      } else {
+        moves.push(move_to_san(ugly_moves[i], generate_moves({ legal: true })))
+      }
+    }
+
+    return moves
+  }
+
   // convert a move from Standard Algebraic Notation (SAN) to 0x88 coordinates
   function move_from_san(move, sloppy) {
     // strip off any move decorations: e.g Nf3+?! becomes Nf3
@@ -1387,33 +1426,27 @@ var Chess = function (fen) {
     },
 
     moves: function (options) {
-      /* The internal representation of a chess move is in 0x88 format, and
-       * not meant to be human-readable.  The code below converts the 0x88
-       * square coordinates to algebraic coordinates.  It also prunes an
-       * unnecessary move keys resulting from a verbose call.
-       */
+      return valid_moves(options)
+    },
 
-      var ugly_moves = generate_moves(options)
-      var moves = []
+    threats: function () {
+      var validMoves = [].concat(
+        valid_moves({ verbose: true, turn: 'w' }),
+        valid_moves({ verbose: true, turn: 'b' })
+      )
+      var threats = {}
 
-      for (var i = 0, len = ugly_moves.length; i < len; i++) {
-        /* does the user want a full move object (most likely not), or just
-         * SAN
-         */
-        if (
-          typeof options !== 'undefined' &&
-          'verbose' in options &&
-          options.verbose
-        ) {
-          moves.push(make_pretty(ugly_moves[i]))
-        } else {
-          moves.push(
-            move_to_san(ugly_moves[i], generate_moves({ legal: true }))
-          )
+      for (var jj = 0; jj < validMoves.length; jj++) {
+        var move = validMoves[jj]
+        if (move.captured) {
+          if (!threats[move.to]) {
+            threats[move.to] = []
+          }
+          threats[move.to].push(move)
         }
       }
 
-      return moves
+      return threats
     },
 
     in_check: function () {
@@ -1902,7 +1935,7 @@ var Chess = function (fen) {
         return null
       }
       events.emit('history', history)
-      return make_pretty(move);
+      return make_pretty(move)
     },
 
     clear: function () {

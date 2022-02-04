@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 if (typeof require != "undefined") {
   var Chess = require('../chess').Chess;
 }
@@ -62,7 +66,55 @@ describe("Single Square Move Generation", () => {
   });
 });
 
+describe("Threats", () => {
 
+  const positions = [
+    {
+      fen: 'rn1qkbnr/pbppppp1/8/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1',
+      threats: {
+        h8: [
+          {
+            color: 'w',
+            from: 'h1',
+            to: 'h8',
+            flags: 'c',
+            piece: 'r',
+            captured: 'r',
+            san: 'Rxh8'
+          }
+        ],
+        h1: [
+          {
+            color: 'b',
+            from: 'h8',
+            to: 'h1',
+            flags: 'c',
+            piece: 'r',
+            captured: 'r',
+            san: 'Rxh1'
+          },
+          {
+            color: 'b',
+            from: 'b7',
+            to: 'h1',
+            flags: 'c',
+            piece: 'b',
+            captured: 'r',
+            san: 'Bxh1'
+          }
+        ]
+      }
+    },
+  ];
+
+  positions.forEach((position) => {
+    const chess = new Chess(position.fen);
+    test(position.fen + ' ' + position.square, () => {
+      const moves = chess.threats();
+      expect(moves).toEqual(position.threats);
+    });
+  });
+});
 
 
 describe("Checkmate", () => {
@@ -1716,7 +1768,7 @@ describe('Regression Tests', () => {
       expect(chess.history()).toEqual(history)
       expect(chess.header()['Result']).toBe('1/2-1/2')
     });
-  
+
   it('Github Issue #286 - pgn should not generate sloppy moves',
     () => {
       const chess = new Chess()

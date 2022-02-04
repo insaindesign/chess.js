@@ -289,6 +289,8 @@ export interface ChessInstance {
      * verbose objects.
      */
     moves(options: {
+        turn?: 'w' | 'b';
+
         /** Set to true to return verbose move objects instead of strings */
         verbose: true;
         /**
@@ -297,6 +299,8 @@ export interface ChessInstance {
          */
         square?: string | undefined;
     }): Move[];
+
+    threats(): { [K in Square]: Move[] };
 
     /**
      * Returns a list of legal moves from the current position.
