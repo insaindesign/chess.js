@@ -149,6 +149,8 @@ var Chess = function (fen) {
   var RANK_8 = 0
 
   var second_rank = { b: RANK_7, w: RANK_2 }
+  // en passant rank (move piece from 5th to 6th)
+  var fith_rank = { b: RANK_4, w: RANK_5 }
 
   // prettier-ignore
   var SQUARES = {
@@ -615,7 +617,7 @@ var Chess = function (fen) {
 
           if (board[square] != null && board[square].color === them) {
             add_move(board, moves, i, square, BITS.CAPTURE)
-          } else if (square === ep_square && turn === us) {
+          } else if (square === ep_square && rank(i) === fith_rank[us]) {
             add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
           }
         }

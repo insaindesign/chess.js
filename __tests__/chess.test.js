@@ -160,6 +160,24 @@ describe("Threats", () => {
         ]
       }
     },
+    // en passant
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      moves: ['e4', 'a5', 'e5', 'd5'],
+      threats: {
+        d6: [
+          {
+            color: 'w',
+            from: 'e5',
+            to: 'd6',
+            flags: 'e',
+            piece: 'p',
+            captured: 'p',
+            san: 'exd6'
+          }
+        ]
+      }
+    },
   ];
 
   positions.forEach((position) => {
