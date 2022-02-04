@@ -134,7 +134,7 @@ describe("Threats", () => {
     },
     {
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      moves: ['e4', 'd5'],
+      moves: ['e4', 'd5', 'd3'],
       threats: {
         d5: [
           {

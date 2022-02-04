@@ -289,8 +289,6 @@ export interface ChessInstance {
      * verbose objects.
      */
     moves(options: {
-        turn?: 'w' | 'b';
-
         /** Set to true to return verbose move objects instead of strings */
         verbose: true;
         /**

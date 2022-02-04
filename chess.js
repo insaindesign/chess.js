@@ -148,6 +148,8 @@ var Chess = function (fen) {
   var RANK_7 = 1
   var RANK_8 = 0
 
+  var second_rank = { b: RANK_7, w: RANK_2 }
+
   // prettier-ignore
   var SQUARES = {
     a8:   0, b8:   1, c8:   2, d8:   3, e8:   4, f8:   5, g8:   6, h8:   7,
@@ -197,7 +199,8 @@ var Chess = function (fen) {
       keep_headers = false
     }
 
-    board = new Array(128)
+    board.length = 0 // clear board
+    board.length = 128 // reset board
     kings = { w: EMPTY, b: EMPTY }
     turn = WHITE
     castling = { w: 0, b: 0 }
@@ -515,9 +518,9 @@ var Chess = function (fen) {
     return piece
   }
 
-  function build_move(board, from, to, flags, color, promotion) {
+  function build_move(board, from, to, flags, promotion) {
     var move = {
-      color,
+      color: turn,
       from: from,
       to: to,
       flags: flags,
@@ -537,29 +540,26 @@ var Chess = function (fen) {
     return move
   }
 
-  function generate_moves(opts) {
-    function add_move(board, moves, from, to, flags, color) {
-      /* if pawn promotion */
-      if (
-        board[from].type === PAWN &&
-        (rank(to) === RANK_8 || rank(to) === RANK_1)
-      ) {
-        var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
-        for (var i = 0, len = pieces.length; i < len; i++) {
-          moves.push(build_move(board, from, to, flags, color, pieces[i]))
-        }
-      } else {
-        moves.push(build_move(board, from, to, flags, color))
+  function add_move(board, moves, from, to, flags) {
+    /* if pawn promotion */
+    if (
+      board[from].type === PAWN &&
+      (rank(to) === RANK_8 || rank(to) === RANK_1)
+    ) {
+      var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
+      for (var i = 0, len = pieces.length; i < len; i++) {
+        moves.push(build_move(board, from, to, flags, pieces[i]))
       }
+    } else {
+      moves.push(build_move(board, from, to, flags))
     }
+  }
 
+  function generate_moves(opts) {
     var options = opts || {}
-
     var moves = []
-    var us = options.turn || turn
+    var us = turn
     var them = swap_color(us)
-    var second_rank = { b: RANK_7, w: RANK_2 }
-
     var first_sq = SQUARES.a8
     var last_sq = SQUARES.h1
     var single_square = false
@@ -579,7 +579,7 @@ var Chess = function (fen) {
         single_square = true
       } else {
         /* invalid square */
-        return []
+        return moves
       }
     }
 
@@ -599,12 +599,12 @@ var Chess = function (fen) {
         /* single square, non-capturing */
         var square = i + PAWN_OFFSETS[us][0]
         if (board[square] == null) {
-          add_move(board, moves, i, square, BITS.NORMAL, us)
+          add_move(board, moves, i, square, BITS.NORMAL)
 
           /* double square */
           var square = i + PAWN_OFFSETS[us][1]
           if (second_rank[us] === rank(i) && board[square] == null) {
-            add_move(board, moves, i, square, BITS.BIG_PAWN, us)
+            add_move(board, moves, i, square, BITS.BIG_PAWN)
           }
         }
 
@@ -614,9 +614,9 @@ var Chess = function (fen) {
           if (square & 0x88) continue
 
           if (board[square] != null && board[square].color === them) {
-            add_move(board, moves, i, square, BITS.CAPTURE, us)
+            add_move(board, moves, i, square, BITS.CAPTURE)
           } else if (square === ep_square && turn === us) {
-            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE, us)
+            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
           }
         }
       } else if (piece_type === true || piece_type === piece.type) {
@@ -629,10 +629,10 @@ var Chess = function (fen) {
             if (square & 0x88) break
 
             if (board[square] == null) {
-              add_move(board, moves, i, square, BITS.NORMAL, us)
+              add_move(board, moves, i, square, BITS.NORMAL)
             } else {
               if (board[square].color === us) break
-              add_move(board, moves, i, square, BITS.CAPTURE, us)
+              add_move(board, moves, i, square, BITS.CAPTURE)
               break
             }
 
@@ -660,14 +660,7 @@ var Chess = function (fen) {
             !attacked(them, castling_from + 1) &&
             !attacked(them, castling_to)
           ) {
-            add_move(
-              board,
-              moves,
-              kings[us],
-              castling_to,
-              BITS.KSIDE_CASTLE,
-              us
-            )
+            add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
           }
         }
 
@@ -684,14 +677,7 @@ var Chess = function (fen) {
             !attacked(them, castling_from - 1) &&
             !attacked(them, castling_to)
           ) {
-            add_move(
-              board,
-              moves,
-              kings[us],
-              castling_to,
-              BITS.QSIDE_CASTLE,
-              us
-            )
+            add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
           }
         }
       }
@@ -1169,7 +1155,8 @@ var Chess = function (fen) {
     return s
   }
 
-  function valid_moves(options) {
+  function valid_moves(opts) {
+    var options = opts || {}
     /* The internal representation of a chess move is in 0x88 format, and
      * not meant to be human-readable.  The code below converts the 0x88
      * square coordinates to algebraic coordinates.  It also prunes an
@@ -1183,11 +1170,7 @@ var Chess = function (fen) {
       /* does the user want a full move object (most likely not), or just
        * SAN
        */
-      if (
-        typeof options !== 'undefined' &&
-        'verbose' in options &&
-        options.verbose
-      ) {
+      if ('verbose' in options && options.verbose) {
         moves.push(make_pretty(ugly_moves[i]))
       } else {
         moves.push(move_to_san(ugly_moves[i], generate_moves({ legal: true })))
@@ -1430,10 +1413,10 @@ var Chess = function (fen) {
     },
 
     threats: function () {
-      var validMoves = [].concat(
-        valid_moves({ verbose: true, turn: 'w' }),
-        valid_moves({ verbose: true, turn: 'b' })
-      )
+      var validMoves = valid_moves({ verbose: true })
+      turn = swap_color(turn)
+      validMoves = validMoves.concat(valid_moves({ verbose: true }))
+      turn = swap_color(turn)
       var threats = {}
 
       for (var jj = 0; jj < validMoves.length; jj++) {
