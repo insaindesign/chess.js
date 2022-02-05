@@ -522,7 +522,7 @@ var Chess = function (fen) {
 
   function build_move(board, from, to, flags, promotion) {
     var move = {
-      color: turn,
+      color: board[from].color,
       from: from,
       to: to,
       flags: flags,
@@ -560,7 +560,7 @@ var Chess = function (fen) {
   function generate_moves(opts) {
     var options = opts || {}
     var moves = []
-    var us = turn
+    var us = options.color || turn
     var them = swap_color(us)
     var first_sq = SQUARES.a8
     var last_sq = SQUARES.h1
@@ -715,7 +715,7 @@ var Chess = function (fen) {
    * 4. ... Nge7 is overly disambiguated because the knight on c6 is pinned
    * 4. ... Ne7 is technically the valid SAN
    */
-  function move_to_san(move, moves) {
+  function move_to_san(move) {
     var output = ''
 
     if (move.flags & BITS.KSIDE_CASTLE) {
@@ -724,7 +724,10 @@ var Chess = function (fen) {
       output = 'O-O-O'
     } else {
       if (move.piece !== PAWN) {
-        var disambiguator = get_disambiguator(move, moves)
+        var disambiguator = get_disambiguator(
+          move,
+          generate_moves({ valid: true, color: move.color })
+        )
         output += move.piece.toUpperCase() + disambiguator
       }
 
@@ -918,7 +921,7 @@ var Chess = function (fen) {
   }
 
   function make_move(move) {
-    var us = turn
+    var us = move.color
     var them = swap_color(us)
     push(move)
 
@@ -927,7 +930,7 @@ var Chess = function (fen) {
 
     /* if ep capture, remove the captured pawn */
     if (move.flags & BITS.EP_CAPTURE) {
-      if (turn === BLACK) {
+      if (us === BLACK) {
         board[move.to - 16] = null
       } else {
         board[move.to + 16] = null
@@ -988,7 +991,7 @@ var Chess = function (fen) {
 
     /* if big pawn move, update the en passant square */
     if (move.flags & BITS.BIG_PAWN) {
-      if (turn === 'b') {
+      if (us === 'b') {
         ep_square = move.to - 16
       } else {
         ep_square = move.to + 16
@@ -1006,10 +1009,10 @@ var Chess = function (fen) {
       half_moves++
     }
 
-    if (turn === BLACK) {
+    if (us === BLACK) {
       move_number++
     }
-    turn = swap_color(turn)
+    turn = them
   }
 
   function undo_move() {
@@ -1020,14 +1023,14 @@ var Chess = function (fen) {
 
     var move = old.move
     kings = old.kings
-    turn = old.turn
+    turn = move.color
     castling = old.castling
     ep_square = old.ep_square
     half_moves = old.half_moves
     move_number = old.move_number
 
     var us = turn
-    var them = swap_color(turn)
+    var them = swap_color(us)
 
     board[move.from] = board[move.to]
     board[move.from].type = move.piece // to undo any promotions
@@ -1175,7 +1178,7 @@ var Chess = function (fen) {
       if ('verbose' in options && options.verbose) {
         moves.push(make_pretty(ugly_moves[i]))
       } else {
-        moves.push(move_to_san(ugly_moves[i], generate_moves({ legal: true })))
+        moves.push(move_to_san(ugly_moves[i]))
       }
     }
 
@@ -1310,7 +1313,7 @@ var Chess = function (fen) {
   /* pretty = external move object */
   function make_pretty(ugly_move) {
     var move = clone(ugly_move)
-    move.san = move_to_san(move, generate_moves({ legal: true }))
+    move.san = move_to_san(move)
     move.to = algebraic(move.to)
     move.from = algebraic(move.from)
 
@@ -1415,12 +1418,10 @@ var Chess = function (fen) {
     },
 
     threats: function () {
-      var validMoves = valid_moves({ verbose: true })
-      turn = swap_color(turn)
-      validMoves = validMoves.concat(valid_moves({ verbose: true }))
-      turn = swap_color(turn)
+      var validMoves = valid_moves({ verbose: true, color: turn }).concat(
+        valid_moves({ verbose: true, color: swap_color(turn) })
+      )
       var threats = {}
-
       for (var jj = 0; jj < validMoves.length; jj++) {
         var move = validMoves[jj]
         if (move.captured) {
@@ -1568,8 +1569,7 @@ var Chess = function (fen) {
           move_string = move_number + '.'
         }
 
-        move_string =
-          move_string + ' ' + move_to_san(move, generate_moves({ legal: true }))
+        move_string = move_string + ' ' + move_to_san(move)
         make_move(move)
       }
 
@@ -1969,7 +1969,7 @@ var Chess = function (fen) {
         if (verbose) {
           move_history.push(make_pretty(move))
         } else {
-          move_history.push(move_to_san(move, generate_moves({ legal: true })))
+          move_history.push(move_to_san(move))
         }
         make_move(move)
       }
