@@ -298,6 +298,8 @@ export interface ChessInstance {
         square?: string | undefined;
     }): Move[];
 
+    defenders(): { [K in Square]: Move[] };
+
     threats(): { [K in Square]: Move[] };
 
     /**
