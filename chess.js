@@ -762,7 +762,8 @@ var Chess = function (fen) {
     return move.replace(/=/, '').replace(/[+#]?[?!]*$/, '')
   }
 
-  function attacked(color, square) {
+  function attackers(color, square) {
+    let pieces = []
     for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
       /* did we run off the end of the board */
       if (i & 0x88) {
@@ -780,15 +781,24 @@ var Chess = function (fen) {
       if (ATTACKS[index] & (1 << SHIFTS[piece.type])) {
         if (piece.type === PAWN) {
           if (difference > 0) {
-            if (piece.color === WHITE) return true
+            if (piece.color === WHITE) {
+              pieces.push(i)
+              continue
+            }
           } else {
-            if (piece.color === BLACK) return true
+            if (piece.color === BLACK) {
+              pieces.push(i)
+              continue
+            }
           }
           continue
         }
 
         /* if the piece is a knight or a king */
-        if (piece.type === 'n' || piece.type === 'k') return true
+        if (piece.type === 'n' || piece.type === 'k') {
+          pieces.push(i)
+          continue
+        }
 
         var offset = RAYS[index]
         var j = i + offset
@@ -802,11 +812,18 @@ var Chess = function (fen) {
           j += offset
         }
 
-        if (!blocked) return true
+        if (!blocked) {
+          pieces.push(i)
+          continue
+        }
       }
     }
 
-    return false
+    return pieces
+  }
+
+  function attacked(color, square) {
+    return attackers(color, square).length > 0
   }
 
   function king_attacked(color) {
@@ -1433,6 +1450,26 @@ var Chess = function (fen) {
       }
 
       return threats
+    },
+
+    defenders: function () {
+      const moves = []
+      for (let ii = 0; ii < board.length; ii++) {
+        if (!board[ii]) continue
+        attackers(board[ii].color, ii).forEach((p) =>
+          add_move(board, moves, p, ii, BITS.CAPTURE)
+        )
+      }
+
+      var defenders = {}
+      for (var jj = 0; jj < moves.length; jj++) {
+        var move = make_pretty(moves[jj])
+        if (!defenders[move.to]) {
+          defenders[move.to] = []
+        }
+        defenders[move.to].push(move)
+      }
+      return defenders
     },
 
     in_check: function () {

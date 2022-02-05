@@ -395,6 +395,97 @@ describe('Threats', () => {
   })
 })
 
+describe('Defenders', () => {
+  const positions = [
+    {
+      fen: 'r2qk2r/8/8/8/8/8/8/3QK3 w KQkq - 0 1',
+      defenders: {
+        a8: [
+          {
+            color: 'b',
+            from: 'd8',
+            to: 'a8',
+            flags: 'c',
+            piece: 'q',
+            captured: 'r',
+            san: 'Qxa8'
+          }
+        ],
+        d8: [
+          {
+            color: 'b',
+            from: 'a8',
+            to: 'd8',
+            flags: 'c',
+            piece: 'r',
+            captured: 'q',
+            san: 'Rxd8'
+          },
+          {
+            color: 'b',
+            from: 'e8',
+            to: 'd8',
+            flags: 'c',
+            piece: 'k',
+            captured: 'q',
+            san: 'Kxd8'
+          }
+        ],
+        e8: [
+          {
+            color: 'b',
+            from: 'd8',
+            to: 'e8',
+            flags: 'c',
+            piece: 'q',
+            captured: 'k',
+            san: 'Qxe8'
+          },
+          {
+            color: 'b',
+            from: 'h8',
+            to: 'e8',
+            flags: 'c',
+            piece: 'r',
+            captured: 'k',
+            san: 'Rxe8+'
+          }
+        ],
+        d1: [
+          {
+            color: 'w',
+            from: 'e1',
+            to: 'd1',
+            flags: 'c',
+            piece: 'k',
+            captured: 'q',
+            san: 'Kxd1#'
+          }
+        ],
+        e1: [
+          {
+            color: 'w',
+            from: 'd1',
+            to: 'e1',
+            flags: 'c',
+            piece: 'q',
+            captured: 'k',
+            san: 'Qxe1#'
+          }
+        ]
+      }
+    },
+  ]
+
+  positions.forEach((position) => {
+    const chess = new Chess(position.fen)
+    test(position.fen, () => {
+      const defenders = chess.defenders()
+      expect(defenders).toEqual(position.defenders)
+    })
+  })
+})
+
 describe('Checkmate', () => {
   const checkmates = [
     '8/5r2/4K1q1/4p3/3k4/8/8/8 w - - 0 7',
