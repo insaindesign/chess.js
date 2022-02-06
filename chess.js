@@ -534,7 +534,7 @@ var Chess = function (fen) {
       move.promotion = promotion
     }
 
-    if (board[to]) {
+    if (board[to] && move.flags & BITS.CAPTURE) {
       move.captured = board[to].type
     } else if (flags & BITS.EP_CAPTURE) {
       move.captured = PAWN
@@ -717,6 +717,7 @@ var Chess = function (fen) {
    */
   function move_to_san(move) {
     var output = ''
+    var initTurn = turn
 
     if (move.flags & BITS.KSIDE_CASTLE) {
       output = 'O-O'
@@ -724,11 +725,13 @@ var Chess = function (fen) {
       output = 'O-O-O'
     } else {
       if (move.piece !== PAWN) {
-        var disambiguator = get_disambiguator(
-          move,
-          generate_moves({ valid: true, color: move.color })
-        )
+        // TODO: this makes the turn wrong
+        var disambiguator = get_disambiguator(move)
         output += move.piece.toUpperCase() + disambiguator
+        if (turn !== initTurn) {
+          console.log('m2s-post-dis', output, initTurn, turn, move)
+          turn = initTurn
+        }
       }
 
       if (move.flags & (BITS.CAPTURE | BITS.EP_CAPTURE)) {
@@ -745,6 +748,7 @@ var Chess = function (fen) {
       }
     }
 
+    // TODO: this makes the ascii wrong
     make_move(move)
     if (in_check()) {
       if (in_checkmate()) {
@@ -754,6 +758,9 @@ var Chess = function (fen) {
       }
     }
     undo_move()
+    if (turn !== initTurn) {
+      console.log('m2s post-undo-move', output, initTurn, turn, move)
+    }
 
     return output
   }
@@ -1032,6 +1039,18 @@ var Chess = function (fen) {
     turn = them
   }
 
+  function moves_to_squares(moves) {
+    var squares = {}
+    for (var jj = 0; jj < moves.length; jj++) {
+      var move = make_pretty(moves[jj], true)
+      if (!squares[move.to]) {
+        squares[move.to] = []
+      }
+      squares[move.to].push(move)
+    }
+    return squares
+  }
+
   function undo_move() {
     var old = history.pop()
     if (old == null || !board[old.move.to]) {
@@ -1083,7 +1102,7 @@ var Chess = function (fen) {
   }
 
   /* this function is used to uniquely identify ambiguous moves */
-  function get_disambiguator(move, moves) {
+  function get_disambiguator(move) {
     var from = move.from
     var to = move.to
     var piece = move.piece
@@ -1092,7 +1111,8 @@ var Chess = function (fen) {
     var same_rank = 0
     var same_file = 0
 
-    for (var i = 0, len = moves.length; i < len; i++) {
+    var moves = generate_moves({ valid: true, color: move.color })
+    for (var i = 0; i < moves.length; i++) {
       var ambig_from = moves[i].from
       var ambig_to = moves[i].to
       var ambig_piece = moves[i].piece
@@ -1328,9 +1348,11 @@ var Chess = function (fen) {
   }
 
   /* pretty = external move object */
-  function make_pretty(ugly_move) {
+  function make_pretty(ugly_move, dontMakeSan) {
     var move = clone(ugly_move)
-    move.san = move_to_san(move)
+    if (!dontMakeSan) {
+      move.san = move_to_san(move)
+    }
     move.to = algebraic(move.to)
     move.from = algebraic(move.from)
 
@@ -1435,21 +1457,14 @@ var Chess = function (fen) {
     },
 
     threats: function () {
-      var validMoves = valid_moves({ verbose: true, color: turn }).concat(
-        valid_moves({ verbose: true, color: swap_color(turn) })
-      )
-      var threats = {}
-      for (var jj = 0; jj < validMoves.length; jj++) {
-        var move = validMoves[jj]
-        if (move.captured) {
-          if (!threats[move.to]) {
-            threats[move.to] = []
-          }
-          threats[move.to].push(move)
-        }
+      var moves = []
+      for (let ii = 0; ii < board.length; ii++) {
+        if (!board[ii]) continue
+        attackers(swap_color(board[ii].color), ii).forEach((p) =>
+          moves.push(build_move(board, p, ii, BITS.CAPTURE))
+        )
       }
-
-      return threats
+      return moves_to_squares(moves)
     },
 
     defenders: function () {
@@ -1457,19 +1472,10 @@ var Chess = function (fen) {
       for (let ii = 0; ii < board.length; ii++) {
         if (!board[ii]) continue
         attackers(board[ii].color, ii).forEach((p) =>
-          add_move(board, moves, p, ii, BITS.CAPTURE)
+          moves.push(build_move(board, p, ii, BITS.NORMAL))
         )
       }
-
-      var defenders = {}
-      for (var jj = 0; jj < moves.length; jj++) {
-        var move = make_pretty(moves[jj])
-        if (!defenders[move.to]) {
-          defenders[move.to] = []
-        }
-        defenders[move.to].push(move)
-      }
-      return defenders
+      return moves_to_squares(moves)
     },
 
     in_check: function () {

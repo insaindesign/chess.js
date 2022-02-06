@@ -155,7 +155,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'r',
             captured: 'r',
-            san: 'Rxh8',
           },
         ],
         h1: [
@@ -166,7 +165,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'r',
             captured: 'r',
-            san: 'Rxh1',
           },
           {
             color: 'b',
@@ -175,7 +173,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'b',
             captured: 'r',
-            san: 'Bxh1',
           },
         ],
       },
@@ -191,7 +188,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'exd5',
           },
         ],
         e4: [
@@ -202,7 +198,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'dxe4',
           },
         ],
       },
@@ -219,7 +214,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'exd5',
           },
         ],
         e4: [
@@ -230,25 +224,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'dxe4',
-          },
-        ],
-      },
-    },
-    // en passant
-    {
-      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-      moves: ['e4', 'a5', 'e5', 'd5'],
-      threats: {
-        d6: [
-          {
-            color: 'w',
-            from: 'e5',
-            to: 'd6',
-            flags: 'e',
-            piece: 'p',
-            captured: 'p',
-            san: 'exd6',
           },
         ],
       },
@@ -264,7 +239,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'b',
             captured: 'p',
-            san: 'Bxf7+',
           },
         ],
         a6: [
@@ -275,7 +249,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'b',
             captured: 'p',
-            san: 'Bxa6',
           },
         ],
         e5: [
@@ -286,7 +259,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'n',
             captured: 'p',
-            san: 'Nxe5',
           },
         ],
         e4: [
@@ -297,7 +269,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'n',
             captured: 'p',
-            san: 'Nxe4',
           },
         ],
         f2: [
@@ -308,7 +279,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'b',
             captured: 'p',
-            san: 'Bxf2+',
           },
         ],
       },
@@ -324,7 +294,6 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'axb5'
           },
           {
             color: 'w',
@@ -333,8 +302,7 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'cxb5'
-          }
+          },
         ],
         a5: [
           {
@@ -344,8 +312,7 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'bxa5'
-          }
+          },
         ],
         b4: [
           {
@@ -355,8 +322,7 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'axb4'
-          }
+          },
         ],
         c4: [
           {
@@ -366,8 +332,7 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'bxc4'
-          }
+          },
         ],
         a4: [
           {
@@ -377,9 +342,8 @@ describe('Threats', () => {
             flags: 'c',
             piece: 'p',
             captured: 'p',
-            san: 'bxa4'
-          }
-        ]
+          },
+        ],
       },
     },
   ]
@@ -389,8 +353,12 @@ describe('Threats', () => {
     const moves = position.moves || []
     test(position.fen + ' moves ' + moves.join(' '), () => {
       moves.forEach((move) => chess.move(move))
+      const t = chess.turn()
+      const a = chess.ascii()
       const threats = chess.threats()
       expect(threats).toEqual(position.threats)
+      expect(chess.turn()).toEqual(t)
+      expect(chess.ascii()).toEqual(a)
     })
   })
 })
@@ -398,89 +366,79 @@ describe('Threats', () => {
 describe('Defenders', () => {
   const positions = [
     {
-      fen: 'r2qk2r/8/8/8/8/8/8/3QK3 w KQkq - 0 1',
+      fen: 'r2qk2r/8/8/8/8/8/8/3QK3 b KQkq - 0 1',
       defenders: {
         a8: [
           {
             color: 'b',
             from: 'd8',
             to: 'a8',
-            flags: 'c',
+            flags: 'n',
             piece: 'q',
-            captured: 'r',
-            san: 'Qxa8'
-          }
+          },
         ],
         d8: [
           {
             color: 'b',
             from: 'a8',
             to: 'd8',
-            flags: 'c',
+            flags: 'n',
             piece: 'r',
-            captured: 'q',
-            san: 'Rxd8'
           },
           {
             color: 'b',
             from: 'e8',
             to: 'd8',
-            flags: 'c',
+            flags: 'n',
             piece: 'k',
-            captured: 'q',
-            san: 'Kxd8'
-          }
+          },
         ],
         e8: [
           {
             color: 'b',
             from: 'd8',
             to: 'e8',
-            flags: 'c',
+            flags: 'n',
             piece: 'q',
-            captured: 'k',
-            san: 'Qxe8'
           },
           {
             color: 'b',
             from: 'h8',
             to: 'e8',
-            flags: 'c',
+            flags: 'n',
             piece: 'r',
-            captured: 'k',
-            san: 'Rxe8+'
-          }
+          },
         ],
         d1: [
           {
             color: 'w',
             from: 'e1',
             to: 'd1',
-            flags: 'c',
+            flags: 'n',
             piece: 'k',
-            captured: 'q',
-            san: 'Kxd1#'
-          }
+          },
         ],
         e1: [
           {
             color: 'w',
             from: 'd1',
             to: 'e1',
-            flags: 'c',
+            flags: 'n',
             piece: 'q',
-            captured: 'k',
-            san: 'Qxe1#'
-          }
-        ]
-      }
+          },
+        ],
+      },
     },
   ]
 
   positions.forEach((position) => {
     const chess = new Chess(position.fen)
     test(position.fen, () => {
+      const t = chess.turn()
+      const a = chess.ascii()
       const defenders = chess.defenders()
+      expect(chess.turn()).toEqual(t)
+      expect(chess.ascii()).toEqual(a)
       expect(defenders).toEqual(position.defenders)
     })
   })
