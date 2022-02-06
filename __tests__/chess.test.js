@@ -373,8 +373,9 @@ describe('Defenders', () => {
             color: 'b',
             from: 'd8',
             to: 'a8',
-            flags: 'n',
+            flags: 'c',
             piece: 'q',
+            captured: 'r',
           },
         ],
         d8: [
@@ -382,15 +383,17 @@ describe('Defenders', () => {
             color: 'b',
             from: 'a8',
             to: 'd8',
-            flags: 'n',
+            flags: 'c',
             piece: 'r',
+            captured: 'q',
           },
           {
             color: 'b',
             from: 'e8',
             to: 'd8',
-            flags: 'n',
+            flags: 'c',
             piece: 'k',
+            captured: 'q',
           },
         ],
         e8: [
@@ -398,15 +401,17 @@ describe('Defenders', () => {
             color: 'b',
             from: 'd8',
             to: 'e8',
-            flags: 'n',
+            flags: 'c',
             piece: 'q',
+            captured: 'k',
           },
           {
             color: 'b',
             from: 'h8',
             to: 'e8',
-            flags: 'n',
+            flags: 'c',
             piece: 'r',
+            captured: 'k',
           },
         ],
         d1: [
@@ -414,8 +419,9 @@ describe('Defenders', () => {
             color: 'w',
             from: 'e1',
             to: 'd1',
-            flags: 'n',
+            flags: 'c',
             piece: 'k',
+            captured: 'q',
           },
         ],
         e1: [
@@ -423,8 +429,9 @@ describe('Defenders', () => {
             color: 'w',
             from: 'd1',
             to: 'e1',
-            flags: 'n',
+            flags: 'c',
             piece: 'q',
+            captured: 'k',
           },
         ],
       },
@@ -437,6 +444,7 @@ describe('Defenders', () => {
       const t = chess.turn()
       const a = chess.ascii()
       const defenders = chess.defenders()
+      console.log(defenders)
       expect(chess.turn()).toEqual(t)
       expect(chess.ascii()).toEqual(a)
       expect(defenders).toEqual(position.defenders)

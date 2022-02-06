@@ -534,7 +534,7 @@ var Chess = function (fen) {
       move.promotion = promotion
     }
 
-    if (board[to] && move.flags & BITS.CAPTURE) {
+    if (board[to]) {
       move.captured = board[to].type
     } else if (flags & BITS.EP_CAPTURE) {
       move.captured = PAWN
@@ -1472,7 +1472,7 @@ var Chess = function (fen) {
       for (let ii = 0; ii < board.length; ii++) {
         if (!board[ii]) continue
         attackers(board[ii].color, ii).forEach((p) =>
-          moves.push(build_move(board, p, ii, BITS.NORMAL))
+          moves.push(build_move(board, p, ii, BITS.CAPTURE))
         )
       }
       return moves_to_squares(moves)
