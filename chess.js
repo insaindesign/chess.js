@@ -1471,9 +1471,13 @@ var Chess = function (fen) {
       const moves = []
       for (let ii = 0; ii < board.length; ii++) {
         if (!board[ii]) continue
-        attackers(board[ii].color, ii).forEach((p) =>
-          moves.push(build_move(board, p, ii, BITS.CAPTURE))
-        )
+        attackers(board[ii].color, ii).forEach((p) => {
+          const move = build_move(board, p, ii, BITS.CAPTURE);
+          // defending the king is superflous
+          if (move.captured !== 'k') {
+            moves.push(move);
+          }
+        })
       }
       return moves_to_squares(moves)
     },

@@ -396,24 +396,6 @@ describe('Defenders', () => {
             captured: 'q',
           },
         ],
-        e8: [
-          {
-            color: 'b',
-            from: 'd8',
-            to: 'e8',
-            flags: 'c',
-            piece: 'q',
-            captured: 'k',
-          },
-          {
-            color: 'b',
-            from: 'h8',
-            to: 'e8',
-            flags: 'c',
-            piece: 'r',
-            captured: 'k',
-          },
-        ],
         d1: [
           {
             color: 'w',
@@ -422,16 +404,6 @@ describe('Defenders', () => {
             flags: 'c',
             piece: 'k',
             captured: 'q',
-          },
-        ],
-        e1: [
-          {
-            color: 'w',
-            from: 'd1',
-            to: 'e1',
-            flags: 'c',
-            piece: 'q',
-            captured: 'k',
           },
         ],
       },
@@ -444,7 +416,6 @@ describe('Defenders', () => {
       const t = chess.turn()
       const a = chess.ascii()
       const defenders = chess.defenders()
-      console.log(defenders)
       expect(chess.turn()).toEqual(t)
       expect(chess.ascii()).toEqual(a)
       expect(defenders).toEqual(position.defenders)
