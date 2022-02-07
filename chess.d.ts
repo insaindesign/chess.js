@@ -85,6 +85,8 @@ export type Square =
  */
 export type PieceType = "p" | "n" | "b" | "r" | "q" | "k";
 
+export type Color = "b" | "w";
+
 /**
  * Partial data about a chess move including the from and to square, and if a
  * promotion occured.
@@ -117,7 +119,7 @@ export interface Move extends ShortMove {
      * - "b" for Black
      * - "w" for White
      */
-    color: "b" | "w";
+    color: Color;
 
     /** Flags indicating what occurred, combined into one string */
     flags: string;
@@ -147,7 +149,7 @@ export interface Piece {
      * - "b" for Black
      * - "w" for White
      */
-    color: "b" | "w";
+    color: Color;
 }
 
 export interface Comment {
@@ -289,6 +291,12 @@ export interface ChessInstance {
      * verbose objects.
      */
     moves(options: {
+        color?: Color;
+
+        legal?: boolean;
+
+        piece?: string;
+
         /** Set to true to return verbose move objects instead of strings */
         verbose: true;
         /**
@@ -491,7 +499,7 @@ export interface ChessInstance {
      * Returns the current side to move.
      * @returns "b" if Black is the side to move, otherwise "w" for White.
      */
-    turn(): "b" | "w";
+    turn(): Color;
 
     /**
      * Attempts to make a move on the board, returning a move object if the
@@ -628,7 +636,7 @@ export interface ChessInstance {
         verbose?: boolean | undefined;
     }): string[] | Move[];
 
-    board(): Array<Array<{ type: PieceType; color: "w" | "b" } | null>>;
+    board(): Array<Array<{ type: PieceType; color: Color } | null>>;
 
     get_comment(): string | undefined;
 
