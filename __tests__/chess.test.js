@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 if (typeof require != 'undefined') {
   var Chess = require('../chess').Chess
 }

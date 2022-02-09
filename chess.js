@@ -25,27 +25,6 @@
  *
  *----------------------------------------------------------------------------*/
 
-class EventEmitter {
-  constructor() {
-    this.target = new EventTarget()
-  }
-  on = (eventName, listener) => {
-    this.target.addEventListener(eventName, listener)
-    return () => this.off(eventName, listener)
-  }
-  once = (eventName, listener) => {
-    this.target.addEventListener(eventName, listener, { once: true })
-    return () => this.off(eventName, listener)
-  }
-  off = (eventName, listener) =>
-    this.target.removeEventListener(eventName, listener)
-
-  emit = (eventName, detail) =>
-    this.target.dispatchEvent(
-      new CustomEvent(eventName, { detail, cancelable: true })
-    )
-}
-
 var Chess = function (fen) {
   var BLACK = 'b'
   var WHITE = 'w'
@@ -183,7 +162,6 @@ var Chess = function (fen) {
   var half_moves = 0
   var move_number = 1
   var history = []
-  var events = new EventEmitter()
   var header = {}
   var comments = {}
 
@@ -210,7 +188,6 @@ var Chess = function (fen) {
     half_moves = 0
     move_number = 1
     history.length = 0
-    events.emit('history', history)
     if (!keep_headers) header = {}
     comments = {}
     update_setup(generate_fen())
@@ -749,6 +726,7 @@ var Chess = function (fen) {
     }
 
     // TODO: this makes the ascii wrong
+    const temp = new Chess(fen);
     make_move(move)
     if (in_check()) {
       if (in_checkmate()) {
@@ -1903,10 +1881,6 @@ var Chess = function (fen) {
       return turn
     },
 
-    off: events.off.bind(events),
-    on: events.on.bind(events),
-    once: events.once.bind(events),
-
     move: function (move, options) {
       /* The move function can be called with in the following parameters:
        *
@@ -1957,7 +1931,6 @@ var Chess = function (fen) {
       var pretty_move = make_pretty(move_obj)
 
       make_move(move_obj)
-      events.emit('history', history)
       return pretty_move
     },
 
@@ -1966,7 +1939,6 @@ var Chess = function (fen) {
       if (!move) {
         return null
       }
-      events.emit('history', history)
       return make_pretty(move)
     },
 

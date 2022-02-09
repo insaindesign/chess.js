@@ -19,8 +19,5 @@
   "scripts": {
     "test": "jest",
     "format": "prettier --write chess.js"
-  },
-  "jest": {
-    "env": "jsdom"
   }
 }

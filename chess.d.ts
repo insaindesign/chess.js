@@ -373,10 +373,6 @@ export interface ChessInstance {
      */
     in_draw(): boolean;
 
-    on(event: string, callback: () => void): () => void;
-    once(event: string, callback: () => void): () => void;
-    off(event: string): void;
-
     /**
      * Returns true if the game is drawn due to insufficient material
      * (K vs. K, K vs. KB, or K vs. KN); otherwise false.
