@@ -726,7 +726,7 @@ var Chess = function (fen) {
     }
 
     // TODO: this makes the ascii wrong
-    const temp = new Chess(fen);
+    const temp = new Chess(fen)
     make_move(move)
     if (in_check()) {
       if (in_checkmate()) {
@@ -748,7 +748,7 @@ var Chess = function (fen) {
   }
 
   function attackers(color, square) {
-    let pieces = []
+    const pieces = []
     for (var i = SQUARES.a8; i <= SQUARES.h1; i++) {
       /* did we run off the end of the board */
       if (i & 0x88) {
@@ -812,7 +812,8 @@ var Chess = function (fen) {
   }
 
   function king_attacked(color) {
-    return attacked(swap_color(color), kings[color])
+    const square = kings[color]
+    return board[square] && attacked(swap_color(color), square)
   }
 
   function in_check() {
@@ -1450,10 +1451,10 @@ var Chess = function (fen) {
       for (let ii = 0; ii < board.length; ii++) {
         if (!board[ii]) continue
         attackers(board[ii].color, ii).forEach((p) => {
-          const move = build_move(board, p, ii, BITS.CAPTURE);
+          const move = build_move(board, p, ii, BITS.CAPTURE)
           // defending the king is superflous
           if (move.captured !== 'k') {
-            moves.push(move);
+            moves.push(move)
           }
         })
       }

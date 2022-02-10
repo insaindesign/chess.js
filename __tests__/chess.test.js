@@ -1589,6 +1589,42 @@ describe('Load PGN', () => {
   })
 })
 
+describe('moves', () => {
+  const positions = [
+    {
+      fen: 'r6r/pppppppp/8/8/8/8/8/2RR4 w - - 0 1',
+      moves: [
+        'Rc2',
+        'Rc3',
+        'Rc4',
+        'Rc5',
+        'Rc6',
+        'Rxc7',
+        'Rb1',
+        'Ra1',
+        'Rd2',
+        'Rd3',
+        'Rd4',
+        'Rd5',
+        'Rd6',
+        'Rxd7',
+        'Re1',
+        'Rf1',
+        'Rg1',
+        'Rh1',
+      ],
+    },
+  ]
+  const chess = new Chess()
+  positions.forEach((position) => {
+    test(position.fen, () => {
+      const loaded = chess.load(position.fen)
+      expect(loaded).toBe(true)
+      expect(chess.moves()).toEqual(position.moves)
+    })
+  })
+})
+
 describe('Manipulate Comments', () => {
   const is_empty = (object) => {
     for (const property in object) {
